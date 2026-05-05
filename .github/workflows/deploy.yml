@@ -119,6 +119,17 @@ jobs:
           PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
         run: |
           pulumi stack select ${{ steps.env.outputs.stack }}
+
+          # Clear any pending CREATE operations from interrupted runs.
+          pulumi refresh --clear-pending-creates --yes
+
+          # Drop orphan k8s resources that exist in the cluster but not in Pulumi
+          # state (common after state drift or cancelled runs). Safe — Pulumi
+          # will recreate them on the next up.
+          kubectl delete deployment freellmapi -n ${{ steps.env.outputs.namespace }} --ignore-not-found
+          kubectl delete service freellmapi -n ${{ steps.env.outputs.namespace }} --ignore-not-found
+          kubectl delete ingress freellmapi -n ${{ steps.env.outputs.namespace }} --ignore-not-found
+
           pulumi config set image ${{ env.DOCKER_IMAGE }}:${{ steps.version.outputs.tag }}
           pulumi config set namespace ${{ steps.env.outputs.namespace }}
           pulumi config set host ${{ steps.env.outputs.host }}
