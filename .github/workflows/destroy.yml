@@ -1,0 +1,80 @@
+name: Destroy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to destroy'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
+      confirm:
+        description: 'Type "destroy" to confirm'
+        required: true
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm == 'destroy'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set environment variables
+        id: env
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
+          if [ "$ENV" = "prod" ]; then
+            echo "stack=soitgoes887/freellmapi-prod" >> $GITHUB_OUTPUT
+            echo "namespace=freellmapi-prod" >> $GITHUB_OUTPUT
+          else
+            echo "stack=soitgoes887/freellmapi-dev" >> $GITHUB_OUTPUT
+            echo "namespace=freellmapi-dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Pulumi
+        uses: pulumi/actions@v5
+
+      - name: Install infrastructure dependencies
+        working-directory: infrastructure
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install
+
+      - name: Setup kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Nuke the namespace (removes all k8s resources including PVC)
+        run: |
+          kubectl delete namespace ${{ steps.env.outputs.namespace }} --ignore-not-found --timeout=120s || true
+
+      - name: Pulumi destroy (clears state)
+        working-directory: infrastructure
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+          PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
+        run: |
+          pulumi stack select ${{ steps.env.outputs.stack }}
+          pulumi cancel --yes || true
+          pulumi refresh --clear-pending-creates --yes || true
+          pulumi destroy --yes --skip-preview || true
+          # Force-clear any leftover state resources
+          pulumi stack --show-urns 2>/dev/null | grep -oE 'urn:[^ ]+' | while read urn; do
+            pulumi state delete "$urn" --yes --target-dependents || true
+          done
+
+      - name: Done
+        run: |
+          echo "✅ Destroyed ${{ steps.env.outputs.namespace }}"
+          echo "⚠️  Check Hetzner Cloud Console → Volumes and delete any orphaned pvc-* volumes manually."
