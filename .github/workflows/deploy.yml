@@ -53,11 +53,11 @@ jobs:
           echo "environment=${ENV}" >> $GITHUB_OUTPUT
 
           if [ "$ENV" = "prod" ]; then
-            echo "stack=freellmapi-prod" >> $GITHUB_OUTPUT
+            echo "stack=soitgoes887/freellmapi-prod" >> $GITHUB_OUTPUT
             echo "namespace=freellmapi-prod" >> $GITHUB_OUTPUT
             echo "host=freellmapi.ddns.net" >> $GITHUB_OUTPUT
           else
-            echo "stack=freellmapi-dev" >> $GITHUB_OUTPUT
+            echo "stack=soitgoes887/freellmapi-dev" >> $GITHUB_OUTPUT
             echo "namespace=freellmapi-dev" >> $GITHUB_OUTPUT
             echo "host=freellmapi-dev.167-235-219-49.sslip.io" >> $GITHUB_OUTPUT
           fi
