@@ -120,9 +120,6 @@ jobs:
         run: |
           pulumi stack select ${{ steps.env.outputs.stack }}
 
-          # Clear any pending CREATE operations from interrupted runs.
-          pulumi refresh --clear-pending-creates --yes
-
           # Drop orphan k8s resources that exist in the cluster but not in Pulumi
           # state (common after state drift or cancelled runs). Safe — Pulumi
           # will recreate them on the next up.
@@ -130,8 +127,12 @@ jobs:
           kubectl delete service freellmapi -n ${{ steps.env.outputs.namespace }} --ignore-not-found
           kubectl delete ingress freellmapi -n ${{ steps.env.outputs.namespace }} --ignore-not-found
 
-          # Reverse case: PVC missing from cluster but still referenced in Pulumi
-          # state. Drop it from state so `up` recreates it. No-op when consistent.
+          # Reconcile state with post-delete reality and clear any pending
+          # CREATE operations from interrupted runs.
+          pulumi refresh --clear-pending-creates --yes
+
+          # Extra reconciliation: if PVC missing from cluster but still in state,
+          # drop it from state so `up` recreates it.
           if ! kubectl -n ${{ steps.env.outputs.namespace }} get pvc freellmapi-data >/dev/null 2>&1; then
             PVC_URN=$(pulumi stack --show-urns 2>/dev/null | grep PersistentVolumeClaim | awk '{print $NF}' || true)
             if [ -n "$PVC_URN" ]; then
