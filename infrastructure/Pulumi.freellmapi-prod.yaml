@@ -7,3 +7,6 @@ config:
   freellmapi-infrastructure:storageSize: 1Gi
   # Set after first `pulumi stack init`:
   #   pulumi config set --secret encryptionKey <64-char hex from `openssl rand -hex 32`>
+
+  freellmapi-infrastructure:encryptionKey:
+    secure: AAABAG2/SXYNeNM/LOIWTca48CPiABjWMnMBOT0t7bOP/qPDAZJXiTQDYLfy15iSb62GdJUdXGNW1cjGAzHXxvKaQTZnqxbT82vJrXhlqBvKXchehT3XQJa78dBrjnbj
