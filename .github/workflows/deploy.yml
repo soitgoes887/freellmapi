@@ -130,6 +130,16 @@ jobs:
           kubectl delete service freellmapi -n ${{ steps.env.outputs.namespace }} --ignore-not-found
           kubectl delete ingress freellmapi -n ${{ steps.env.outputs.namespace }} --ignore-not-found
 
+          # Reverse case: PVC missing from cluster but still referenced in Pulumi
+          # state. Drop it from state so `up` recreates it. No-op when consistent.
+          if ! kubectl -n ${{ steps.env.outputs.namespace }} get pvc freellmapi-data >/dev/null 2>&1; then
+            PVC_URN=$(pulumi stack --show-urns 2>/dev/null | grep PersistentVolumeClaim | awk '{print $NF}' || true)
+            if [ -n "$PVC_URN" ]; then
+              echo "Removing stale PVC from Pulumi state: $PVC_URN"
+              pulumi state delete "$PVC_URN" --yes --target-dependents || true
+            fi
+          fi
+
           pulumi config set image ${{ env.DOCKER_IMAGE }}:${{ steps.version.outputs.tag }}
           pulumi config set namespace ${{ steps.env.outputs.namespace }}
           pulumi config set host ${{ steps.env.outputs.host }}
