@@ -1,0 +1,3 @@
+name: freellmapi-infrastructure
+runtime: nodejs
+description: Kubernetes deployment of freellmapi on Hetzner

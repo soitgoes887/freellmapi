@@ -1,0 +1,9 @@
+config:
+  freellmapi-infrastructure:image: anicu/freellmapi:latest
+  freellmapi-infrastructure:namespace: freellmapi-dev
+  freellmapi-infrastructure:host: freellmapi-dev.167-235-219-49.sslip.io
+  freellmapi-infrastructure:kubeconfigContext: kubernetes-admin@kubernetes
+  freellmapi-infrastructure:allowlist: 81.96.238.148/32
+  freellmapi-infrastructure:storageSize: 1Gi
+  # Set after first `pulumi stack init`:
+  #   pulumi config set --secret encryptionKey <64-char hex from `openssl rand -hex 32`>
