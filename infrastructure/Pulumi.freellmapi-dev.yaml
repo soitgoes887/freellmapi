@@ -1,5 +1,5 @@
 config:
-  freellmapi-infrastructure:image: anicu/freellmapi:latest
+  freellmapi-infrastructure:image: anicu/freellmapi:2026.05.05-10531d0-6
   freellmapi-infrastructure:namespace: freellmapi-dev
   freellmapi-infrastructure:host: freellmapi-dev.167-235-219-49.sslip.io
   freellmapi-infrastructure:kubeconfigContext: kubernetes-admin@kubernetes
