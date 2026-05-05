@@ -11,6 +11,7 @@ import { analyticsRouter } from './routes/analytics.js';
 import { healthRouter } from './routes/health.js';
 import { settingsRouter } from './routes/settings.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { requireApiKey } from './middleware/requireApiKey.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -27,21 +28,25 @@ export function createApp() {
   app.use(cors());
   app.use(express.json({ limit: '1mb' }));
 
+  // Health check is public (used by k8s probes and uptime monitors).
+  app.use('/api/health', healthRouter);
+  app.get('/api/ping', (_req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
+  // Everything else under /api and /v1 requires the unified API key.
+  app.use('/api', requireApiKey);
+  app.use('/v1', requireApiKey);
+
   // API routes
   app.use('/api/keys', keysRouter);
   app.use('/api/models', modelsRouter);
   app.use('/api/fallback', fallbackRouter);
   app.use('/api/analytics', analyticsRouter);
-  app.use('/api/health', healthRouter);
   app.use('/api/settings', settingsRouter);
 
   // OpenAI-compatible proxy
   app.use('/v1', proxyRouter);
-
-  // Health check
-  app.get('/api/ping', (_req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
-  });
 
   // Error handler (for API routes)
   app.use(errorHandler);
