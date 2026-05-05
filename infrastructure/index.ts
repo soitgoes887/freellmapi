@@ -7,7 +7,6 @@ const host = config.require("host");   // e.g. freellmapi.ddns.net
 const namespaceName = config.require("namespace"); // e.g. freellmapi-prod / freellmapi-dev
 const kubeconfigContext = config.get("kubeconfigContext") || "kubernetes-admin@kubernetes";
 const imagePullPolicy = config.get("imagePullPolicy") || "Always";
-const allowlist = config.get("allowlist") || "81.96.238.148/32";
 const storageSize = config.get("storageSize") || "1Gi";
 
 const encryptionKey = config.requireSecret("encryptionKey");
@@ -107,7 +106,6 @@ const ingress = new k8s.networking.v1.Ingress("freellmapi-ingress", {
         namespace: namespaceName,
         annotations: {
             "cert-manager.io/cluster-issuer": "letsencrypt-prod",
-            "nginx.ingress.kubernetes.io/whitelist-source-range": allowlist,
             "nginx.ingress.kubernetes.io/proxy-body-size": "10m",
             "nginx.ingress.kubernetes.io/proxy-read-timeout": "600",
             "nginx.ingress.kubernetes.io/proxy-send-timeout": "600",
