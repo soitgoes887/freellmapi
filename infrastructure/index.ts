@@ -52,6 +52,11 @@ const deployment = new k8s.apps.v1.Deployment("freellmapi-deployment", {
         template: {
             metadata: { labels: { app: "freellmapi" } },
             spec: {
+                securityContext: {
+                    runAsUser: 1000,
+                    runAsGroup: 1000,
+                    fsGroup: 1000,
+                },
                 containers: [{
                     name: "freellmapi",
                     image: image,
