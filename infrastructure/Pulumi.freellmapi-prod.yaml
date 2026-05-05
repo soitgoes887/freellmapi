@@ -3,7 +3,7 @@ config:
   freellmapi-infrastructure:namespace: freellmapi-prod
   freellmapi-infrastructure:host: freellmapi.ddns.net
   freellmapi-infrastructure:kubeconfigContext: kubernetes-admin@kubernetes
-  freellmapi-infrastructure:allowlist: 81.96.238.148/32,17.243.140.51/32,31.94.72.164/32,2a01:b740:13d0::b5/128,2a00:23ee:2828:4849:dcf2:493e:b7a6:e78b/128
+  freellmapi-infrastructure:allowlist: 17.0.0.0/8,81.96.238.148/32,31.94.72.164/32,2a01:b740:13d0::b5/128,2a00:23ee:2828:4849:dcf2:493e:b7a6:e78b/128
   freellmapi-infrastructure:storageSize: 1Gi
   # Set after first `pulumi stack init`:
   #   pulumi config set --secret encryptionKey <64-char hex from `openssl rand -hex 32`>
